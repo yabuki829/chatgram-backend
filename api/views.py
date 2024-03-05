@@ -5,39 +5,76 @@ from .models import Program,Location,TVStation,Broadcast
 from .serializers import ProgramSerializer
 from django.utils import timezone
 
+from django.utils import timezone
+from datetime import time,datetime,timedelta
+
 from utils.broadcaster import Broadcaster
 class ProgramList(APIView):
-    def get(self, request, format=None):
+    def get(self, request):
         # 都道府県とchannelで分ける
         # 取得例) 大阪の10channelを取得する
         # データの中を確認して location, channel を取得する
+        print(self.request.GET["channel"])
+        print(self.request.GET["location"])
+        channel = self.request.GET["channel"]
         
-
-        location = Location.objects.get(name="大阪")
-        today = timezone.now().date()
-        broadcast = Broadcast.objects.filter(channel=10, location=location).first()
-
-        if broadcast:
-            programs_today = Program.objects.filter(tv_station=broadcast.tv_station, date=today).order_by('time')
-            serializer = ProgramSerializer(programs_today, many=True)
-
+        broadcaster = Broadcaster()
+        program = broadcaster.get_now_program(channel,self.request.GET["location"])
+        if program:
+            serializer = ProgramSerializer(program)
         else:
-            print("指定された条件に一致するBroadcastが見つかりません。")
+            return Response({"message": "現在非対応です。"})
+            
         return Response(serializer.data)
+    
 
-    def post(self, request, format=None):
-        serializer = ProgramSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 
 from rest_framework.decorators import api_view
 @api_view(['GET'])
 def test(request):
-    print("test")
+    
     broadcaster = Broadcaster()
-    broadcaster.get_nihonTV_program()
-    broadcaster.get_yomiuriTV_2()
-    return Response({"message": "取得完了"})
+    # broadcaster.add_broadcast()
+    # broadcaster.get_kansaiTV()
+    # broadcaster.get_ABC_ASAHI()
+    # broadcaster.get_all()
+    # broadcaster.get_nihonTV_program()
+ 
+    channel = 4
+    location = "東京"
+    broadcaster = Broadcaster()
+    program = broadcaster.get_now_program(channel,location)
+    if program:
+        serializer = ProgramSerializer(program)
+    else:
+        return Response({"message": "現在非対応です。"})
+            
+    return Response(serializer.data)
+
+
+def get_tv():
+        print("番組を取得します")
+        location = Location.objects.get(name="大阪")
+        today = timezone.localdate() + timedelta(days=1)
+        start_of_today = timezone.make_aware(datetime.combine(today, time.min))
+        end_of_today = timezone.make_aware(datetime.combine(today, time.max))
+        channel = 6
+        broadcast = Broadcast.objects.filter(channel=channel, location=location).first()
+
+        if broadcast:
+            programs_today = Program.objects.filter(
+                start_time__gte=start_of_today,
+                start_time__lte=end_of_today
+            ).order_by('start_time')
+            print(programs_today.last())
+            # serializer = ProgramSerializer(programs_today, many=True)
+        else:
+            print("指定された条件に一致するBroadcastが見つかりません。")
+            Response({"message": "現在非対応です。"})
+
+        

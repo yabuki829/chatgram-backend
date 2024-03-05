@@ -8,8 +8,11 @@ python-decouple
 gunicorn
 psycopg2-binary
 
-djangorestframework
+djangorestframework~=3.11.1
+django-cors-headers~=3.4.0
 django-filter 
+
+channels
 
 beautifulsoup4
 selenium
