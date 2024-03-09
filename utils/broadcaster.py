@@ -271,7 +271,11 @@ class Broadcaster():
             time_str = row.find_element(By.CSS_SELECTOR, '.item__time').text if row.find_elements(By.CSS_SELECTOR, '.item__time') else None
             title_elements = row.find_elements(By.CSS_SELECTOR, '.item__title .item__anchor')
             title = title_elements[0].text if title_elements else "タイトルなし"
-            
+            # たまに 4:00 ~ 5:00のような形で表示されている場合がある
+            # その場合はスキップする
+            if "〜" in time_str:
+                print("スキップ")
+                continue
             # 0であれば日付が変わっている
             if time_str:
                 hour, minute = map(int, time_str.split(':'))
@@ -386,17 +390,22 @@ class Broadcaster():
     def get_all(self):
         print("-----------日本テレビ-----------")
         self.get_nihonTV_program()
+        print("取得完了")
         print("-----------テレビ朝日放送-----------")
         self.get_ABC_ASAHI()
+        print("取得完了")
         print("-----------朝日放送-----------")
         self.get_Asahi()
+        print("取得完了")
         print("-----------関西てれび-----------")
         self.get_kansaiTV()
-        
+        print("取得完了")        
         print("-----------テレビ大阪-----------")
         self.get_tvosaka()
+        print("取得完了")
         print("-----------読売テレビ-----------")
         self.get_yomiuriTV_2()
+        print("取得完了")
 
     def get_nihonTV_program(self):
         print("日本テレビ")
