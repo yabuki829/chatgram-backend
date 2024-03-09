@@ -18,3 +18,8 @@ beautifulsoup4
 selenium
 chromedriver
 chromedriver-binary==121.0.6167.16.0
+
+
+pandas
+requests
+python-dateutil

@@ -16,6 +16,11 @@ import pytz
 from django.utils import timezone
 from datetime import timedelta
 
+from django.conf import settings
+import requests
+import pandas as pd
+from dateutil import parser
+from django.utils import timezone
 
 # 詳細は著作権違反になるかもしれないから取得しない
 # https://bbs.bengo4.com/questions/291361/
@@ -27,6 +32,8 @@ class Broadcaster():
     def __init__(self) -> None:
         self.options = Options()
         self.options.add_argument('--headless')
+
+    
        
     def get_now_program(self,channel,location):
         # 現在放送中の番組を取得する
@@ -44,7 +51,87 @@ class Broadcaster():
             tv_station=broadcast.tv_station
         ).first()
         print("",current_program)
+
         return current_program
+    def get_nhk_sougou(self):
+        print("nhk総合を取得します")
+        prefectures = [
+          {
+            "name":"NHK総合東京",
+            "id":"130",
+          },
+          {
+            "name":"NHK総合大阪",
+            "id":"270",
+          }  
+        ]
+
+        today = datetime.now().strftime('%Y-%m-%d')
+        apikey = settings.NHK_API_KEY
+
+        # 県の数だけrequestする。
+        for pref in prefectures:
+            tv_station = TVStation.objects.get(name=pref["name"])
+            print("NHK総合",pref["name"],"の番組を取得します")
+            url = 'https://api.nhk.or.jp/v2/pg/list/{0}/g1/{1}.json?key={2}'.format(pref["id"],today,apikey)
+            response = requests.get(url)
+            if response.status_code != 200:
+                print('NHK番組表APIのデータが取得出来ません。')
+                continue
+            data = response.json()
+        
+            for program in data['list']['g1']:
+                title = program['title']
+
+                start_time = parser.isoparse(program['start_time'])
+                end_time = parser.isoparse(program['end_time'])
+                
+                print(start_time.time())
+
+                room = self.create_room(title)
+            
+
+                program,created = Program.objects.get_or_create(
+                        title=title,
+                        tv_station=tv_station,
+                        start_time=start_time,
+                        end_time=end_time,
+                        room=room
+                )
+
+        
+    def get_nhk_etv(self):
+        tv_station = TVStation.objects.get(name="NHK Eテレ")
+        apikey = settings.NHK_API_KEY
+        today = datetime.now().strftime('%Y-%m-%d')
+
+        url = 'https://api.nhk.or.jp/v2/pg/list/{0}/e1/{1}.json?key={2}'.format("130",today,apikey)
+        response = requests.get(url)
+        if response.status_code != 200:
+            print('NHK番組表APIのデータが取得出来ません。')
+
+        data = response.json()
+        
+        for program in data['list']['e1']:
+            title = program['title']
+
+            start_time = parser.isoparse(program['start_time'])
+            end_time = parser.isoparse(program['end_time'])
+                
+            print(start_time.time())
+
+            room = self.create_room(title)
+            
+
+            program,created = Program.objects.get_or_create(
+                title=title,
+                tv_station=tv_station,
+                start_time=start_time,
+                end_time=end_time,
+                room=room
+            )
+
+
     
     def get_ABC_ASAHI(self):
         # schedule this_week
@@ -551,58 +638,10 @@ class Broadcaster():
 
     def add_broadcast(self):
         broads = [
-            {"location": "北海道(札幌)", "broadcast": [
-                {
-                    "channel":1,
-                    "station":"HBC北海道放送"
-                    
-                },
-                {
-                    "channel":2,
-                    "station":"NHKEテレ"
-                    
-                },
-                {
-                    "channel":3,
-                    "station":"NHK総合"
-                    
-                },
-                {
-                    "channel":5,
-                    "station":"札幌テレビ"
-                    
-                },
-                {
-                    "channel":6,
-                    "station":"北海道テレビ"
-                    
-                },
-                {
-                    "channel":7,
-                    "station":"テレビ北海道"
-                    
-                },
-                {
-                    "channel":8,
-                    "station":"北海道文化放送"
-                    
-                },
-            ]},
-            {"location": "青森", "broadcast": []},
-            {"location": "秋田", "broadcast": []},
-            {"location": "岩手", "broadcast": []},
-            {"location": "宮城", "broadcast": []},
-            {"location": "山形", "broadcast": []},
-            {"location": "福島", "broadcast": []},
-            {"location": "茨城", "broadcast": []},
-            {"location": "栃木", "broadcast": []},
-            {"location": "群馬", "broadcast": []},
-            {"location": "埼玉", "broadcast": []},
-            {"location": "千葉", "broadcast": []},
             {"location": "東京", "broadcast": [
                 {
                         "channel": 1,
-                        "station": "NHK総合"
+                        "station": "NHK総合東京"
                     },
                     {
                         "channel": 2,
@@ -629,19 +668,7 @@ class Broadcaster():
                         "station": "フジテレビ"
                     }
             ]},
-            {"location": "神奈川", "broadcast": []},
-            {"location": "新潟", "broadcast": []},
-            {"location": "富山", "broadcast": []},
-            {"location": "石川", "broadcast": []},
-            {"location": "福井", "broadcast": []},
-            {"location": "山梨", "broadcast": []},
-            {"location": "長野", "broadcast": []},
-            {"location": "岐阜", "broadcast": []},
-            {"location": "静岡", "broadcast": []},
-            {"location": "愛知", "broadcast": []},
-            {"location": "三重", "broadcast": []},
-            {"location": "滋賀", "broadcast": []},
-            {"location": "京都", "broadcast": []},
+           
             {"location": "大阪", "broadcast": [
                  {
                         "channel": 10,
@@ -664,34 +691,16 @@ class Broadcaster():
                         "station": "テレビ大阪"
                     },
                     {
-                        "channel": 1,
-                        "station": "NHK総合"
+                        "channel": 2,
+                        "station": "NHK Eテレ"
                     },
                     {
-                        "channel": 3,
-                        "station": "NHK教育"
-                    }
+                        "channel": 1,
+                        "station": "NHK総合大阪"
+                    },
+                   
             ]},
-            {"location": "兵庫", "broadcast": []},
-            {"location": "奈良", "broadcast": []},
-            {"location": "和歌山", "broadcast": []},
-            {"location": "鳥取", "broadcast": []},
-            {"location": "島根", "broadcast": []},
-            {"location": "岡山", "broadcast": []},
-            {"location": "広島", "broadcast": []},
-            {"location": "山口", "broadcast": []},
-            {"location": "徳島", "broadcast": []},
-            {"location": "香川", "broadcast": []},
-            {"location": "愛媛", "broadcast": []},
-            {"location": "高知", "broadcast": []},
-            {"location": "福岡", "broadcast": []},
-            {"location": "佐賀", "broadcast": []},
-            {"location": "長崎", "broadcast": []},
-            {"location": "熊本", "broadcast": []},
-            {"location": "大分", "broadcast": []},
-            {"location": "宮崎", "broadcast": []},
-            {"location": "鹿児島", "broadcast": []},
-            {"location": "沖縄", "broadcast": []}
+           
         ]
         
         for borad in broads:

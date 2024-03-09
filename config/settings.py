@@ -133,3 +133,14 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+# .envファイルを読み込む
+import environ
+import os
+env = environ.Env()
+env.read_env(os.path.join(BASE_DIR, '.env'))
+
+NHK_API_KEY = env('NHK_API_KEY')
