@@ -9,6 +9,10 @@ from django.utils import timezone
 from datetime import time,datetime,timedelta
 
 from utils.broadcaster import Broadcaster
+
+
+
+
 class ProgramList(APIView):
     def get(self, request):
         # 都道府県とchannelで分ける
@@ -31,8 +35,7 @@ class ProgramList(APIView):
 
 
 
-
-
+ 
 
 from rest_framework.decorators import api_view
 @api_view(['GET'])
@@ -42,12 +45,13 @@ def test(request):
     # broadcaster.add_broadcast()
     # broadcaster.add_broadcast()
     # broadcaster.get_kansaiTV()
-    # broadcaster.get_ABC_ASAHI()
+    broadcaster.get_ABC_ASAHI()
     # broadcaster.get_all()
     # broadcaster.get_Asahi()
     # broadcaster.get_nihonTV_program()
     # broadcaster.get_nhk_sougou()
-    broadcaster.get_nhk_etv()
+    # broadcaster.get_nhk_etv()
+    # broadcaster.get_tv_tokyo()
 
     channel = 4
     location = "東京"

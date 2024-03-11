@@ -3,7 +3,7 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -53,8 +53,17 @@ class Broadcaster():
         print("",current_program)
 
         return current_program
+    
+
+   
+
+        
+
+
     def get_nhk_sougou(self):
         print("nhk総合を取得します")
+        # 県によって放送内容が一部違いがある場合がある
+        # なので対応している県全て取得しないといけない
         prefectures = [
           {
             "name":"NHK総合東京",
@@ -131,8 +140,78 @@ class Broadcaster():
                 room=room
             )
 
+    def get_tv_tokyo(self):
+        print("TV東京")
+        url = "https://www.tv-tokyo.co.jp/timetable/broad_tvtokyo/"
+        # tbcms_program__timetable tbcms_timetable 
+        # tbody
+        # tbcms_timetable__tv-tokyo program_genre_info program_genre_variety
+        # 時間　tbcms_timetable__time
+        # title tbcms_timetable__title
+        mobile_emulation = {
+            "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+        }
+        self.options.add_experimental_option("mobileEmulation", mobile_emulation)
+        tv_station = TVStation.objects.get(name="テレビ東京")
+        self.driver = webdriver.Chrome(options=self.options)
+        self.driver.get(url)
 
-    
+        # tbody 内の tr 要素（番組行）を全て取得
+        programs = WebDriverWait(self.driver, 5).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "tbody tr .tbcms_timetable__tv-tokyo .tbcms_timetable__inner"))
+        )
+        print(len(programs),"番組")
+
+        today = timezone.now().date()
+        # 前日に最後に保存したものを取得する
+        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        is_next_day = False
+
+        for row in programs:
+            time_str = row.find_element(By.CSS_SELECTOR, ".tbcms_timetable__time").text if row.find_elements(By.CSS_SELECTOR, '.tbcms_timetable__time') else None
+            title = row.find_element(By.CSS_SELECTOR, ".tbcms_timetable__title").text  if row.find_elements(By.CSS_SELECTOR, '.tbcms_timetable__title') else None
+        
+            # print(time_str,title)
+            
+            if time_str and title:
+                if time_str:
+                    hour, minute = map(int, time_str.split(':'))
+                    if hour == 0:
+                        is_next_day = True
+                    if hour >= 24:
+                            is_next_day = True
+                            hour -= 24
+
+                    if is_next_day: 
+                        program_date = datetime.today().date() + timedelta(days=1)
+                    else:
+                        program_date = datetime.today().date()
+                    tz = pytz.timezone('Asia/Tokyo')
+                    program_time = tz.localize(datetime(program_date.year, program_date.month, program_date.day, hour, minute))
+
+                    if pre_program:
+                        pre_program.end_time = program_time + timedelta(minutes=-1)
+                        pre_program.save()
+       
+                    data = {
+                        "title": title, 
+                        "start_time":program_date,
+                    }
+                    title = self.zenkaku_to_hankaku(title)
+                    room = self.create_room(title)
+            
+
+                    program,created = Program.objects.get_or_create(
+                        title=title,
+                        tv_station=tv_station,
+                        start_time=program_time,
+                        room=room
+                    )
+
+                    pre_program = program
+
+                    print(title,program_time.time())
     def get_ABC_ASAHI(self):
         # schedule this_week
         # morning_tr    
@@ -178,6 +257,7 @@ class Broadcaster():
                     if pre_program:
                         pre_program.end_time = program_time + timedelta(minutes=-1)
                         pre_program.save()
+
 
                     data = {
                         "title": title, 
@@ -493,6 +573,8 @@ class Broadcaster():
         print("-----------読売テレビ-----------")
         self.get_yomiuriTV_2()
         print("取得完了")
+        self.get_nhk_etv()
+        self.get_nhk_sougou()
 
     def get_nihonTV_program(self):
         print("日本テレビ")
