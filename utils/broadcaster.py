@@ -18,9 +18,12 @@ from datetime import timedelta
 
 from django.conf import settings
 import requests
+from bs4 import BeautifulSoup
 import pandas as pd
 from dateutil import parser
 from django.utils import timezone
+
+import re
 
 # 詳細は著作権違反になるかもしれないから取得しない
 # https://bbs.bengo4.com/questions/291361/
@@ -139,7 +142,84 @@ class Broadcaster():
                 end_time=end_time,
                 room=room
             )
+    def get_fuji_tv(self):
+        url = "https://www.fujitv.co.jp/s_cx/timetable/index.html"
+        # #contentinner
+        pass
+    
+    def get_tbs(self):
+        print("TBSの番組を取得します")
+        url = "https://www.tbs.co.jp/smp/tv/"
+        mobile_emulation = {
+            "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+        }
+        self.options.add_experimental_option("mobileEmulation", mobile_emulation)
+        tv_station = TVStation.objects.get(name="TBSテレビ")
+        self.driver = webdriver.Chrome(options=self.options)
+        self.driver.get(url)
+        today = timezone.now().date()
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)
 
+        programs = self.driver.find_elements(By.CSS_SELECTOR, ".contents #timeline li")
+
+        
+
+        for program in programs:
+            time = program.find_element(By.TAG_NAME, "time").text
+            title = program.find_element(By.CSS_SELECTOR, ".title").text
+            
+             # ['', '午前', '3', '：', '45'] ,
+             # ['', '午前', '3', '：', '45',"now on air "] ような感じで分けられる
+            
+            array = re.split(r'(\D+)', time) 
+
+            if len(array) == 5:
+                x,am_pm,h,x,m = re.split(r'(\D+)', time)
+            elif len(array) == 6:
+                x,am_pm,h,x,m,x = re.split(r'(\D+)', time)
+
+        
+            h,m = int(h),int(m)
+
+            if am_pm == "ごご" or am_pm == "よる":
+                h += 12
+
+            if am_pm == "深夜":
+                program_date = datetime.today().date() + timedelta(days=1)
+            else:
+                program_date = datetime.today().date()
+            tz = pytz.timezone('Asia/Tokyo')
+            program_time = tz.localize(datetime(program_date.year, program_date.month, program_date.day, h, m))
+
+
+            if pre_program:
+                pre_program.end_time = program_time + timedelta(minutes=-1)
+                pre_program.save()
+
+                
+            title = self.zenkaku_to_hankaku(title)
+            room = self.create_room(title)
+            
+
+            program,created = Program.objects.get_or_create(
+                title=title,
+                tv_station=tv_station,
+                start_time=program_time,
+                room=room
+            )
+
+            pre_program = program
+
+            print(title,program_time.time())
+
+
+            
+
+           
+
+      
+        
     def get_tv_tokyo(self):
         print("TV東京")
         url = "https://www.tv-tokyo.co.jp/timetable/broad_tvtokyo/"
@@ -156,10 +236,10 @@ class Broadcaster():
         tv_station = TVStation.objects.get(name="テレビ東京")
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.get(url)
-
+        
         # tbody 内の tr 要素（番組行）を全て取得
         programs = WebDriverWait(self.driver, 5).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "tbody tr .tbcms_timetable__tv-tokyo .tbcms_timetable__inner"))
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".tbcms_schedule-daily__body .tbcms_schedule-daily__item .tbcms_schedule-daily__inner .tbcms_schedule-daily__inner-box"))
         )
         print(len(programs),"番組")
 
@@ -169,8 +249,8 @@ class Broadcaster():
         is_next_day = False
 
         for row in programs:
-            time_str = row.find_element(By.CSS_SELECTOR, ".tbcms_timetable__time").text if row.find_elements(By.CSS_SELECTOR, '.tbcms_timetable__time') else None
-            title = row.find_element(By.CSS_SELECTOR, ".tbcms_timetable__title").text  if row.find_elements(By.CSS_SELECTOR, '.tbcms_timetable__title') else None
+            time_str = row.find_element(By.CSS_SELECTOR, ".tbcms_schedule-daily__time").text if row.find_elements(By.CSS_SELECTOR, '.tbcms_schedule-daily__time') else None
+            title = row.find_element(By.CSS_SELECTOR, ".tbcms_schedule-daily__title").text  if row.find_elements(By.CSS_SELECTOR, '.tbcms_schedule-daily__title') else None
         
             # print(time_str,title)
             

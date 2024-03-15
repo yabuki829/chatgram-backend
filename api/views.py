@@ -45,13 +45,14 @@ def test(request):
     # broadcaster.add_broadcast()
     # broadcaster.add_broadcast()
     # broadcaster.get_kansaiTV()
-    broadcaster.get_ABC_ASAHI()
+    # broadcaster.get_ABC_ASAHI()
     # broadcaster.get_all()
     # broadcaster.get_Asahi()
     # broadcaster.get_nihonTV_program()
     # broadcaster.get_nhk_sougou()
     # broadcaster.get_nhk_etv()
     # broadcaster.get_tv_tokyo()
+    broadcaster.get_tbs()
 
     channel = 4
     location = "東京"
