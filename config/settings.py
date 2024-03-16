@@ -11,7 +11,18 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
 
+import environ
 from pathlib import Path
+
+# プロジェクトのルートディレクトリを取得
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# .envファイルを読み込む
+env = environ.Env()
+env.read_env(os.path.join(BASE_DIR, '.env'))
+
+NHK_API_KEY = env('NHK_API_KEY')
+FRONTEND_URL=env("FRONTEND_URL")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -57,6 +68,8 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
+    FRONTEND_URL
+     
 ]
 ROOT_URLCONF = 'config.urls'
 
@@ -143,12 +156,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-import environ
-from pathlib import Path
-
-# プロジェクトのルートディレクトリを取得
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# .envファイルを読み込む
-env = environ.Env()
-env.read_env(os.path.join(BASE_DIR, '.env'))
