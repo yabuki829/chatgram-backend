@@ -142,11 +142,9 @@ class Broadcaster():
                 end_time=end_time,
                 room=room
             )
-    def get_fuji_tv(self):
-        url = "https://www.fujitv.co.jp/s_cx/timetable/index.html"
-        # #contentinner
-        pass
     
+
+
     def get_tbs(self):
         print("TBSの番組を取得します")
         url = "https://www.tbs.co.jp/smp/tv/"
@@ -165,9 +163,9 @@ class Broadcaster():
 
         
 
-        for program in programs:
-            time = program.find_element(By.TAG_NAME, "time").text
-            title = program.find_element(By.CSS_SELECTOR, ".title").text
+        for row in programs:
+            time = row.find_element(By.TAG_NAME, "time").text
+            title = row.find_element(By.CSS_SELECTOR, ".title").text
             
              # ['', '午前', '3', '：', '45'] ,
              # ['', '午前', '3', '：', '45',"now on air "] ような感じで分けられる
@@ -292,6 +290,136 @@ class Broadcaster():
                     pre_program = program
 
                     print(title,program_time.time())
+
+
+
+
+    def get_tokyo_mx1(self):
+        print("東京mx1")
+        # tbody tr
+        # program_set tb_set_mx1
+        # time_set time
+        # rate_set title title_long a strong
+        url = "https://s.mxtv.jp/bangumi/"
+        mobile_emulation = {
+            "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+        }
+        self.options.add_experimental_option("mobileEmulation", mobile_emulation)
+        tv_station = TVStation.objects.get(name="東京MX1")
+        self.driver = webdriver.Chrome(options=self.options)
+        self.driver.get(url)
+        today = timezone.now().date()
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)
+        is_next_day = False
+        programs = self.driver.find_elements(By.CSS_SELECTOR, "tbody tr .tb_set_mx1")
+        print(len(programs),"件の番組")
+        for row in programs:
+            time_str = row.find_element(By.CSS_SELECTOR, ".time_set .time").text if row.find_elements(By.CSS_SELECTOR, ".time_set .time") else None
+            title = row.find_element(By.CSS_SELECTOR, ".rate_set .title a").text  if row.find_elements(By.CSS_SELECTOR,  ".rate_set .title a") else None
+    
+            if time_str and title :
+                hour, minute = map(int, time_str.split(':'))
+                if hour == 0:
+                        is_next_day = True
+                if hour >= 24:
+                            is_next_day = True
+                            hour -= 24
+
+                if is_next_day: 
+                        program_date = datetime.today().date() + timedelta(days=1)
+                else:
+                        program_date = datetime.today().date()
+                tz = pytz.timezone('Asia/Tokyo')
+                program_time = tz.localize(datetime(program_date.year, program_date.month, program_date.day, hour, minute))
+
+                if pre_program:
+                    pre_program.end_time = program_time + timedelta(minutes=-1)
+                    pre_program.save()
+       
+               
+                title = self.zenkaku_to_hankaku(title)
+                room = self.create_room(title)
+            
+
+                program,created = Program.objects.get_or_create(
+                        title=title,
+                        tv_station=tv_station,
+                        start_time=program_time,
+                        room=room
+                )
+
+                pre_program = program
+
+                print(title,program_time)
+
+        pass
+
+    def get_fuji_tv(self): 
+        # 5:30 29:00 
+        
+        # #contentinner timetable tmtable tbody 
+        # tr td 
+        # timebox pgmtime
+        # title pgmtitle 
+
+
+        print("フジテレビ")
+        url = "https://www.fujitv.co.jp/s_cx/timetable/index.html"
+        mobile_emulation = {
+            "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+        }
+        self.options.add_experimental_option("mobileEmulation", mobile_emulation)
+        tv_station = TVStation.objects.get(name="フジテレビ")
+        self.driver = webdriver.Chrome(options=self.options)
+        self.driver.get(url)
+        today = timezone.now().date()
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)
+        is_next_day = False
+        programs = self.driver.find_elements(By.CSS_SELECTOR, "#contentinner #timetable .tmtable tbody tr td")
+        print(len(programs),"件の番組")
+
+        for row in programs:
+            time_str = row.find_element(By.CSS_SELECTOR, ".timebox .pgmtime").text if row.find_elements(By.CSS_SELECTOR, ".timebox .pgmtime") else None
+            title = row.find_element(By.CSS_SELECTOR, ".title .pgmtitle").text  if row.find_elements(By.CSS_SELECTOR,  ".title .pgmtitle") else None
+            if time_str and title:
+           
+                hour, minute = map(int, time_str.split(':'))
+                if hour == 0:
+                        is_next_day = True
+                if hour >= 24:
+                            is_next_day = True
+                            hour -= 24
+
+                if is_next_day: 
+                        program_date = datetime.today().date() + timedelta(days=1)
+                else:
+                        program_date = datetime.today().date()
+                tz = pytz.timezone('Asia/Tokyo')
+                program_time = tz.localize(datetime(program_date.year, program_date.month, program_date.day, hour, minute))
+
+                if pre_program:
+                    pre_program.end_time = program_time + timedelta(minutes=-1)
+                    pre_program.save()
+       
+               
+                title = self.zenkaku_to_hankaku(title)
+                room = self.create_room(title)
+            
+
+                program,created = Program.objects.get_or_create(
+                        title=title,
+                        tv_station=tv_station,
+                        start_time=program_time,
+                        room=room
+                )
+
+                pre_program = program
+
+                print(title,program_time)
+
+
     def get_ABC_ASAHI(self):
         # schedule this_week
         # morning_tr    
@@ -653,8 +781,22 @@ class Broadcaster():
         print("-----------読売テレビ-----------")
         self.get_yomiuriTV_2()
         print("取得完了")
+        print("-----------nhk-----------")
         self.get_nhk_etv()
         self.get_nhk_sougou()
+        print("取得完了")
+        print("-----------テレビ東京-----------")
+        self.get_tv_tokyo()
+        print("取得完了")
+        print("-----------TBS-----------")
+        self.get_tbs()
+        print("取得完了")
+        print("-----------フジテレビ-----------")
+        self.get_fuji_tv()
+        print("取得完了")
+        print("-----------東京MX1-----------")
+        self.get_tokyo_mx1()
+        print("取得完了")
 
     def get_nihonTV_program(self):
         print("日本テレビ")
@@ -829,6 +971,7 @@ class Broadcaster():
                         "channel": 8,
                         "station": "フジテレビ"
                     }
+
             ]},
            
             {"location": "大阪", "broadcast": [
