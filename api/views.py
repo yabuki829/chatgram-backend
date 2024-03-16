@@ -9,9 +9,10 @@ from django.utils import timezone
 from datetime import time,datetime,timedelta
 
 from utils.broadcaster import Broadcaster
+from django.http import HttpResponse
 
-
-
+def index(request):
+    return HttpResponse("Hello, world.")
 
 class ProgramList(APIView):
     def get(self, request):
