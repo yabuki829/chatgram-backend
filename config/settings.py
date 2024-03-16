@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-=x@gn!k=do(kgu2*p5-yvid+762^!&k9f4vp#&e^oo0erk*@x5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -140,6 +140,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # .envファイルを読み込む
 import environ
 import os
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+
 env = environ.Env()
 env.read_env(os.path.join(BASE_DIR, '.env'))
 
