@@ -97,16 +97,29 @@ ASGI_APPLICATION = 'config.asgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 
-from decouple import config
-from dj_database_url import parse as dburl
+from socket import gethostname
+hostname = gethostname()
 
-default_dburl = "sqlite:///" + str(BASE_DIR / "db.sqlite3")
-
-DATABASES = {
-    "default": config("DATABASE_URL", default=default_dburl, cast=dburl),
-}
-
-
+if "COMPUTER-NAME" in hostname:
+    # デバッグ環境
+    # DEBUG = True 
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+    ALLOWED_HOSTS = ['*'] 
+else:
+    # 本番環境
+    # DEBUG = False
+    import dj_database_url
+    db_from_env = dj_database_url.config()
+    DATABASES = {
+        'default': dj_database_url.config()
+    }
+    ALLOWED_HOSTS = ['*']
+    
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
