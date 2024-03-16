@@ -34,13 +34,13 @@ import re
 class Broadcaster():
     def __init__(self) -> None:
         self.options = Options()
-        chrome_bin = os.environ.get('GOOGLE_CHROME_BIN', 'chromedriver')
-        self.options.binary_location = chrome_bin
+        # chrome_bin = os.environ.get('GOOGLE_CHROME_BIN', 'chromedriver')
+        # self.options.binary_location = chrome_bin
         self.options.add_argument("--headless")
         self.options.add_argument("--disable-gpu")
         self.options.add_argument("--no-sandbox")
-        chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', 'chromedriver')
-        self.service = Service(executable_path=chromedriver_path)   
+        # chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', 'chromedriver')
+        # self.service = Service(executable_path=chromedriver_path)   
         
 
     
@@ -163,7 +163,8 @@ class Broadcaster():
         }
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
         
-        self.driver = webdriver.Chrome(service=self.service, options=self.options)
+        # self.driver = webdriver.Chrome(service=self.service, options=self.options)
+        self.driver = webdriver.Chrome( options=self.options)
         self.driver.get(url)
         today = timezone.now().date()
         pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)
@@ -180,16 +181,21 @@ class Broadcaster():
              # ['', '午前', '3', '：', '45',"now on air "] ような感じで分けられる
             
             array = re.split(r'(\D+)', time) 
-
+            
+            print("-----------------------------------------------")
+            # print(array,len(array))
+            
             if len(array) == 5:
                 x,am_pm,h,x,m = re.split(r'(\D+)', time)
             elif len(array) == 6:
-                x,am_pm,h,x,m,x = re.split(r'(\D+)', time)
+                 x,am_pm,h,x,m,x = re.split(r'(\D+)', time)
+            elif len(array) == 7:
+                x,am_pm,h,x,m,x,x = re.split(r'(\D+)', time)
 
         
             h,m = int(h),int(m)
-
-            if am_pm == "ごご" or am_pm == "よる":
+            # print(am_pm,h,m)
+            if h < 12 and am_pm == "ごご" or am_pm == "よる":
                 h += 12
 
             if am_pm == "深夜":
@@ -197,6 +203,7 @@ class Broadcaster():
             else:
                 program_date = datetime.today().date()
             tz = pytz.timezone('Asia/Tokyo')
+            # print(am_pm,h,"時",m,"分")
             program_time = tz.localize(datetime(program_date.year, program_date.month, program_date.day, h, m))
 
 
