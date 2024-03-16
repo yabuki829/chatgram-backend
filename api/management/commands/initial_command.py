@@ -6,5 +6,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         broadcaster = Broadcaster()
         print("追加する")
-        broadcaster.add_broadcast
+        broadcaster.add_broadcast()
         
+# python manage.py migrate
+# python manage.py initial_command 
+# python manage.py get_tv_program_1
