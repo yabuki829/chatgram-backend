@@ -82,11 +82,14 @@ ASGI_APPLICATION = 'config.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+
+from decouple import config
+from dj_database_url import parse as dburl
+
+default_dburl = "sqlite:///" + str(BASE_DIR / "db.sqlite3")
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": config("DATABASE_URL", default=default_dburl, cast=dburl),
 }
 
 
@@ -127,7 +130,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -137,14 +147,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-# .envファイルを読み込む
-import environ
 import os
+import environ
+from pathlib import Path
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# プロジェクトのルートディレクトリを取得
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+# .envファイルを読み込む
 env = environ.Env()
 env.read_env(os.path.join(BASE_DIR, '.env'))
-
-NHK_API_KEY = env('NHK_API_KEY')
