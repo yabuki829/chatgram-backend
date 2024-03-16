@@ -3,7 +3,7 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -22,7 +22,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from dateutil import parser
 from django.utils import timezone
-
+import os
 import re
 
 # 詳細は著作権違反になるかもしれないから取得しない
@@ -34,7 +34,14 @@ import re
 class Broadcaster():
     def __init__(self) -> None:
         self.options = Options()
-        self.options.add_argument('--headless')
+        chrome_bin = os.environ.get('GOOGLE_CHROME_BIN', 'chromedriver')
+        self.options.binary_location = chrome_bin
+        self.options.add_argument("--headless")
+        self.options.add_argument("--disable-gpu")
+        self.options.add_argument("--no-sandbox")
+        chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', 'chromedriver')
+        self.service = Service(executable_path=chromedriver_path)   
+        
 
     
        
@@ -147,14 +154,16 @@ class Broadcaster():
 
     def get_tbs(self):
         print("TBSの番組を取得します")
+        tv_station = TVStation.objects.get(name="TBSテレビ")
         url = "https://www.tbs.co.jp/smp/tv/"
+        
         mobile_emulation = {
             "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
             "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
         }
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
-        tv_station = TVStation.objects.get(name="TBSテレビ")
-        self.driver = webdriver.Chrome(options=self.options)
+        
+        self.driver = webdriver.Chrome(service=self.service, options=self.options)
         self.driver.get(url)
         today = timezone.now().date()
         pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)

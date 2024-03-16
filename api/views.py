@@ -43,7 +43,8 @@ from rest_framework.decorators import api_view
 def test(request):
     
     broadcaster = Broadcaster()
-    broadcaster.get_all()
+    broadcaster.get_tbs()
+    # broadcaster.get_all()
  
 
     channel = 4
