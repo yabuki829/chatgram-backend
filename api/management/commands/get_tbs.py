@@ -5,10 +5,5 @@ class Command(BaseCommand):
     help = 'Prints all book titles in the database'
     def handle(self, *args, **options):
         broadcaster = Broadcaster()
-        broadcaster.add_broadcast()
+        broadcaster.get_tbs()
         
-# python manage.py migrate
-# python manage.py initial_command 
-# python manage.py get_tv_program_1
-        
-# eroku logs --tail --app chatgram

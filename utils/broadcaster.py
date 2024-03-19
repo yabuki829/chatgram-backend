@@ -36,11 +36,12 @@ class Broadcaster():
         self.options = Options()
         # chrome_bin = os.environ.get('GOOGLE_CHROME_BIN', 'chromedriver')
         # self.options.binary_location = chrome_bin
-        self.options.add_argument("--headless")
-        self.options.add_argument("--disable-gpu")
-        self.options.add_argument("--no-sandbox")
-        chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', 'chromedriver')
-        self.service = Service(executable_path=chromedriver_path)   
+        self.options.add_argument('--headless')
+        self.options.add_argument('--disable-gpu')
+        self.options.add_argument('--no-sandbox')
+        self.options.add_argument('--disable-dev-shm-usage')
+        self.options.add_argument('--remote-debugging-port=9222')
+
         
 
     
@@ -520,6 +521,7 @@ class Broadcaster():
         }
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
         tv_station = TVStation.objects.get(name="テレビ大阪")
+        self.driver.set_window_size(950, 800)
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.get(url)
         
@@ -656,6 +658,7 @@ class Broadcaster():
             "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
         }
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
+        self.driver.set_window_size(950, 800)
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.get(url)
         pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
