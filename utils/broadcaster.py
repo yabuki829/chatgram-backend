@@ -658,6 +658,7 @@ class Broadcaster():
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.get(url)
+        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
         print("---------------------------------------------")
         print("前日一番最後に放送されたもの",pre_program)
         print("---------------------------------------------")
@@ -666,7 +667,7 @@ class Broadcaster():
         )
         today = timezone.now().date()
         # 前日に最後に保存したものを取得する
-        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        
        
         
         is_next_day = False
