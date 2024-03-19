@@ -319,16 +319,15 @@ class Broadcaster():
         # time_set time
         # rate_set title title_long a strong
         url = "https://s.mxtv.jp/bangumi/"
+        tv_station = TVStation.objects.get(name="東京MX1")
         mobile_emulation = {
             "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
             "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
         }
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
-        tv_station = TVStation.objects.get(name="東京MX1")
-        
         self.driver = webdriver.Chrome(options=self.options)
-        self.driver.set_window_size(950, 800)
         self.driver.get(url)
+        
         today = timezone.now().date()
         pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         is_next_day = False
