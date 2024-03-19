@@ -39,8 +39,8 @@ class Broadcaster():
         self.options.add_argument("--headless")
         self.options.add_argument("--disable-gpu")
         self.options.add_argument("--no-sandbox")
-        # chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', 'chromedriver')
-        # self.service = Service(executable_path=chromedriver_path)   
+        chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', 'chromedriver')
+        self.service = Service(executable_path=chromedriver_path)   
         
 
     
@@ -164,8 +164,8 @@ class Broadcaster():
         }
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
         
-        # self.driver = webdriver.Chrome(service=self.service, options=self.options)
-        self.driver = webdriver.Chrome( options=self.options)
+        self.driver = webdriver.Chrome(service=self.service, options=self.options)
+        # self.driver = webdriver.Chrome( options=self.options)
         self.driver.get(url)
         today = timezone.now().date()
         pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)
@@ -650,20 +650,24 @@ class Broadcaster():
         print("テレビ朝日を取得します")
         tv_station = TVStation.objects.get(name="テレビ朝日")
 
-
         url = "https://www.tv-asahi.co.jp/bangumi/sphone/"
+        mobile_emulation = {
+            "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+        }
+        self.options.add_experimental_option("mobileEmulation", mobile_emulation)
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.get(url)
-
+        print("---------------------------------------------")
+        print("前日一番最後に放送されたもの",pre_program)
+        print("---------------------------------------------")
         programs = WebDriverWait(self.driver, 10).until(
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".programList .item"))
         )
         today = timezone.now().date()
         # 前日に最後に保存したものを取得する
         pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
-        print("---------------------------------------------")
-        print("前日一番最後に放送されたもの",pre_program)
-        print("---------------------------------------------")
+       
         
         is_next_day = False
         for row in programs:
@@ -686,7 +690,6 @@ class Broadcaster():
                 else:
                     program_date = timezone.localdate()
                 
-                # 番組の放送時刻
                 
                 tz = pytz.timezone('Asia/Tokyo')
                 program_time = tz.localize(datetime(program_date.year, program_date.month, program_date.day, hour, minute))
