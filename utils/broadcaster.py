@@ -318,8 +318,9 @@ class Broadcaster():
         # program_set tb_set_mx1
         # time_set time
         # rate_set title title_long a strong
-        url = "https://s.mxtv.jp/bangumi/"
         tv_station = TVStation.objects.get(name="東京MX1")
+       
+        url = "https://s.mxtv.jp/bangumi/"
         mobile_emulation = {
             "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
             "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"

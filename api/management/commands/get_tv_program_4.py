@@ -5,6 +5,6 @@ class Command(BaseCommand):
     help = 'Prints all book titles in the database'
     def handle(self, *args, **options):
         broadcaster = Broadcaster()
-        broadcaster.get_fuji_tv()
+        # broadcaster.get_fuji_tv()
         broadcaster.get_tokyo_mx1()
         
