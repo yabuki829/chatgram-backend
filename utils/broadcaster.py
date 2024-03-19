@@ -555,7 +555,7 @@ class Broadcaster():
                 
                 tz = pytz.timezone('Asia/Tokyo')
                 program_time = tz.localize(datetime(program_date.year, program_date.month, program_date.day, hour, minute))
-
+                print(pre_program)
                 if pre_program:
                     pre_program.end_time = program_time + timedelta(minutes=-1)
                     pre_program.save()
