@@ -169,7 +169,7 @@ class Broadcaster():
         # self.driver = webdriver.Chrome( options=self.options)
         self.driver.get(url)
         today = timezone.now().date()
-        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
 
         programs = self.driver.find_elements(By.CSS_SELECTOR, ".contents #timeline li")
 
@@ -261,7 +261,7 @@ class Broadcaster():
 
         today = timezone.now().date()
         # 前日に最後に保存したものを取得する
-        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         is_next_day = False
 
         for row in programs:
@@ -328,7 +328,7 @@ class Broadcaster():
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.get(url)
         today = timezone.now().date()
-        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         is_next_day = False
         programs = self.driver.find_elements(By.CSS_SELECTOR, "tbody tr .tb_set_mx1")
         print(len(programs),"件の番組")
@@ -394,7 +394,7 @@ class Broadcaster():
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.get(url)
         today = timezone.now().date()
-        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         is_next_day = False
         programs = self.driver.find_elements(By.CSS_SELECTOR, "#contentinner #timetable .tmtable tbody tr td")
         print(len(programs),"件の番組")
@@ -461,7 +461,7 @@ class Broadcaster():
         programs = self.driver.find_elements(By.CSS_SELECTOR, ".this_week tbody tr td:not(.time_cell)")
         today = timezone.now().date()
         # 前日に最後に保存したものを取得する
-        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         is_next_day = False
         for row in programs:
             time_str = row.find_element(By.CSS_SELECTOR, "p.oa_time").text if row.find_elements(By.CSS_SELECTOR, 'p.oa_time') else None
@@ -531,14 +531,14 @@ class Broadcaster():
 
         print(f"{len(programs)}番組を取得します")
         today = timezone.now().date()
-        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         is_next_day = False
         for row in programs:
             time_str = row.find_element(By.CSS_SELECTOR, 'time').text if row.find_elements(By.CSS_SELECTOR, 'time') else None
             title = row.find_element(By.CSS_SELECTOR, 'cite').text if row.find_elements(By.CSS_SELECTOR, 'cite') else "タイトルなし"
             if not time_str and not title: 
                 print("終了")
-                continue
+                break
 
             if time_str:
                 hour, minute = map(int, time_str.split(':'))
@@ -557,13 +557,10 @@ class Broadcaster():
                 program_time = tz.localize(datetime(program_date.year, program_date.month, program_date.day, hour, minute))
 
                 if pre_program:
-                        pre_program.end_time = program_time + timedelta(minutes=-1)
-                        pre_program.save()
+                    pre_program.end_time = program_time + timedelta(minutes=-1)
+                    pre_program.save()
 
-                data = {
-                        "title": title, 
-                        "start_time":program_date,
-                }
+            
                 title = self.zenkaku_to_hankaku(title)
                 room = self.create_room(title)
             
@@ -600,7 +597,7 @@ class Broadcaster():
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".timetable-content .program"))
         )
         today = timezone.now().date()
-        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         is_next_day = False
         print(len(programs),"番組を取得します")
         for row in programs:
@@ -663,7 +660,7 @@ class Broadcaster():
         self.driver.set_window_size(950, 800)
         self.driver.get(url)
         today = timezone.now().date()
-        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         print("---------------------------------------------")
         print("前日一番最後に放送されたもの",pre_program)
         print("---------------------------------------------")
@@ -747,7 +744,7 @@ class Broadcaster():
         
         today = timezone.now().date()
         # 前日に最後に保存したものを取得する
-        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         for row in programs:
             time_str = row.find_element(By.CSS_SELECTOR, '.time').text if row.find_elements(By.CSS_SELECTOR, '.time') else None
             title_element = row.find_elements(By.CSS_SELECTOR, '.ttl')
@@ -856,7 +853,7 @@ class Broadcaster():
         is_next_day = False
         pre_time = "00:00"
         today = timezone.now().date()
-        pre_program = Program.objects.filter(start_time=today,tv_station=tv_station)
+        pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
         for program in programs:
             title = program.find_element(By.CSS_SELECTOR, '.program-table__schedule-description__title').text
 
