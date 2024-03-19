@@ -105,7 +105,7 @@ class Broadcaster():
                 start_time = parser.isoparse(program['start_time'])
                 end_time = parser.isoparse(program['end_time'])
                 
-                print(start_time.time())
+                print(start_time.time(),title)
 
                 room = self.create_room(title)
             
@@ -117,9 +117,10 @@ class Broadcaster():
                         end_time=end_time,
                         room=room
                 )
-
+        print("NHK総合取得完了しました。")
         
     def get_nhk_etv(self):
+        print("NHKEテレを取得します")
         tv_station = TVStation.objects.get(name="NHK Eテレ")
         apikey = settings.NHK_API_KEY
         today = datetime.now().strftime('%Y-%m-%d')
@@ -137,7 +138,7 @@ class Broadcaster():
             start_time = parser.isoparse(program['start_time'])
             end_time = parser.isoparse(program['end_time'])
                 
-            print(start_time.time())
+            print(start_time.time(),title)
 
             room = self.create_room(title)
             
@@ -149,7 +150,7 @@ class Broadcaster():
                 end_time=end_time,
                 room=room
             )
-    
+        print("取得完了しました。")
 
 
     def get_tbs(self):
@@ -225,7 +226,7 @@ class Broadcaster():
 
             pre_program = program
 
-            print(title,program_time.time())
+            print(program_time.time(),title)
 
 
             
@@ -305,7 +306,7 @@ class Broadcaster():
 
                     pre_program = program
 
-                    print(title,program_time.time())
+                    print(program_time.time(),title)
 
 
 
@@ -367,11 +368,12 @@ class Broadcaster():
 
                 pre_program = program
 
-                print(title,program_time)
+                print(program_time.time(),title)
 
         pass
 
     def get_fuji_tv(self): 
+        print("フジテレビの番組を取得します")
         # 5:30 29:00 
         
         # #contentinner timetable tmtable tbody 
@@ -433,10 +435,11 @@ class Broadcaster():
 
                 pre_program = program
 
-                print(title,program_time)
-
+                print(program_time.time(),title,)
+        print("フジテレビ取得完了")
 
     def get_ABC_ASAHI(self):
+        print("ABC朝日放送を取得します。")
         # schedule this_week
         # morning_tr    
         # cboxElement oa_time
@@ -500,13 +503,14 @@ class Broadcaster():
 
                     pre_program = program
 
-                    print(title,program_time.time())
+                    print(program_time.time(),title)
 
 
-
+        print("ABC朝日取得が完了しました。")
         self.driver.quit()
 
     def get_tvosaka(self):
+        print("テレビおおさかの番組を取得します。")
         # timetables_weekly-timetable
         # program_desc
         url = "https://www.tv-osaka.co.jp/timetables/weekly/"
@@ -532,8 +536,8 @@ class Broadcaster():
             title = row.find_element(By.CSS_SELECTOR, 'cite').text if row.find_elements(By.CSS_SELECTOR, 'cite') else "タイトルなし"
             if not time_str and not title: 
                 print("終了")
-                return
-            print(time_str)
+                continue
+
             if time_str:
                 hour, minute = map(int, time_str.split(':'))
                 if hour == 0:
@@ -571,11 +575,12 @@ class Broadcaster():
 
                 pre_program = program
                 print(program_time.time(),title)
-                
+        print("テレビ大阪の番組取得が終了しました。")       
         self.driver.quit()
 
     
     def get_kansaiTV(self):
+        print("関西テレビの番組を取得します。")
         url = "https://www.ktv.jp/timetable/"
         # timetable-content
         # program-airtime
@@ -633,13 +638,16 @@ class Broadcaster():
 
                 pre_program = program
                 print(program_time.time(),title)
+
         self.driver.quit()
+        print("関西テレビの番組を取得完了しました。")
 
 
 
 
 
     def get_Asahi(self):
+        print("テレビ朝日を取得します")
         tv_station = TVStation.objects.get(name="テレビ朝日")
 
 
@@ -703,13 +711,14 @@ class Broadcaster():
                 
 
         
-
+        print("朝日放送取得完了しました。")
         self.driver.quit()
 
 
 
 
     def get_yomiuriTV_2(self):
+        print("読売テレビを取得します。")
         tv_station = TVStation.objects.get(name="読売テレビ")
 
         # スマホサイズに変更
@@ -742,12 +751,10 @@ class Broadcaster():
 
             
             if time_str:
-                # 24時間制を考慮して時間を解析
-                print("------------------------------------------------------------")
                 hour, minute = map(int, time_str.split(':'))
                 
                 if hour >= 24:
-                    print("24時間を超えています")
+                    # print("24時間を超えています")
                     hour -= 24
                     program_date = datetime.today().date() + timedelta(days=1)
                 else:
@@ -763,7 +770,6 @@ class Broadcaster():
 
                 title = self.zenkaku_to_hankaku(title)
                 room = self.create_room(title)
-                print(title,program_time.time())
 
                 program,created = Program.objects.get_or_create(
                         title=title,
@@ -775,7 +781,7 @@ class Broadcaster():
                 pre_program = program
                 print(program_time.time(),title)
             
-                
+        print("取得完了しました。")
         self.driver.quit()
 
     def get_all(self):
@@ -815,7 +821,7 @@ class Broadcaster():
         print("取得完了")
 
     def get_nihonTV_program(self):
-        print("日本テレビ")
+        print("日本テレビを取得します。")
         """ 今日一日の日本テレビの番組を取得する """
 
         self.driver = webdriver.Chrome(options=self.options)
@@ -850,17 +856,15 @@ class Broadcaster():
             if time_str:
                 hour, minute = time_str.split(':')
 
-                print("----------------------")
                 # スタートが05なので次に00が来ればそれは日付を跨いだということ
                 if hour == "00":
                     is_next_day = True
                 
                 if is_next_day:
-                    print("日付が変わりました。")
+                    # print("日付が変わりました。")
                     program_date = datetime.today().date() + timedelta(days=1)
                 else:
                     time = self.convert_time_to_24h_format(time_str,pre_time)
-                    print("時間",time)
                     pre_time = time 
                     program_date = datetime.today().date()
                 
@@ -889,7 +893,7 @@ class Broadcaster():
                 print(program_time.time(),title)
 
         
-            
+        print("日本テレビ取得完了しました。")    
         self.driver.quit()
 
 

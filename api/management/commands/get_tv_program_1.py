@@ -8,5 +8,4 @@ class Command(BaseCommand):
         broadcaster.get_nihonTV_program()
         broadcaster.get_ABC_ASAHI()
         broadcaster.get_Asahi()
-        # broadcaster.get_tbs()
         
