@@ -11,5 +11,6 @@ class Command(BaseCommand):
 # python manage.py initial_command 
 # python manage.py get_tv_program_1
 #   python manage.py get_asahi
+# python manage.py get_tvosaka
         
 # eroku logs --tail --app chatgram

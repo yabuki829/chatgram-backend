@@ -521,8 +521,8 @@ class Broadcaster():
         }
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
         tv_station = TVStation.objects.get(name="テレビ大阪")
-        self.driver.set_window_size(950, 800)
         self.driver = webdriver.Chrome(options=self.options)
+        self.driver.set_window_size(950, 800)
         self.driver.get(url)
         
         programs = WebDriverWait(self.driver, 10).until(
