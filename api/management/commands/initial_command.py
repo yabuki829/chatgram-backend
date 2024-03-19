@@ -10,5 +10,6 @@ class Command(BaseCommand):
 # python manage.py migrate
 # python manage.py initial_command 
 # python manage.py get_tv_program_1
+#   python manage.py get_asahi
         
 # eroku logs --tail --app chatgram
