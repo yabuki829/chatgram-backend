@@ -325,7 +325,9 @@ class Broadcaster():
         }
         self.options.add_experimental_option("mobileEmulation", mobile_emulation)
         tv_station = TVStation.objects.get(name="東京MX1")
+        
         self.driver = webdriver.Chrome(options=self.options)
+        self.driver.set_window_size(950, 800)
         self.driver.get(url)
         today = timezone.now().date()
         pre_program = Program.objects.filter(start_time=today, tv_station=tv_station).order_by('start_time').last()
