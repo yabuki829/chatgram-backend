@@ -52,7 +52,7 @@ def test(request):
     broadcaster = Broadcaster()
     program = broadcaster.get_now_program(channel,location)
     if program:
-        serializer = ProgramSerializer(program)
+        serializer = ProgramSerializer(program,many=True)
     else:
         return Response({"message": "現在非対応です。"})
             

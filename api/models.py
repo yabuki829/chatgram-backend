@@ -28,17 +28,18 @@ class Broadcast(models.Model):
     def __str__(self):
         return f"{self.location.name}({self.channel}) {self.tv_station.name}"
 
-
+from django.utils import timezone
 # ルームをどの段階で作成するのか問題
 # 1. 番組を取得したタイミングで作成しておく
 # 2. 初めてコメントしたタイミングで作成
 class Room(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(default="No Title", max_length=255)
+    created_at = models.DateTimeField(default=timezone.now)
     def __str__(self):
         return  self.name
     
-from django.utils import timezone
+
 
 class Program(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)

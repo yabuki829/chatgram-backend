@@ -496,7 +496,9 @@ class Broadcaster():
                     title = self.zenkaku_to_hankaku(title)
                     room = self.create_room(title)
             
-
+                    # 何かの手違いで2回目取得しないといけなくなった場合データの重複をさせないためにget_or_create
+                    # だけど一部番組が同じタイトルの場合同じルームが使用される
+                    
                     program,created = Program.objects.get_or_create(
                         title=title,
                         tv_station=tv_station,
@@ -964,7 +966,8 @@ class Broadcaster():
         """
         return unicodedata.normalize("NFKC", text)
     def create_room(self,title):
-        room,created= Room.objects.get_or_create(name=title)
+        today = timezone.now().date()
+        room,created= Room.objects.get_or_create(name=title,created_at=today)
         return room
         
 
