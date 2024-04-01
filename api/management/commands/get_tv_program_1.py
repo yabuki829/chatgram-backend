@@ -9,3 +9,5 @@ class Command(BaseCommand):
         broadcaster.get_ABC_ASAHI()
         broadcaster.get_Asahi()
         
+
+# 実行する時間を朝６時ごろに実行する
