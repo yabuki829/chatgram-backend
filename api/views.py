@@ -42,10 +42,9 @@ from rest_framework.decorators import api_view
 @api_view(['GET'])
 def test(request):
     
-    broadcaster = Broadcaster()
-    broadcaster.get_tbs()
+    # broadcaster = Broadcaster()
+    # broadcaster.get_tbs()
     # broadcaster.get_all()
- 
 
     channel = 4
     location = "東京"
@@ -57,6 +56,34 @@ def test(request):
         return Response({"message": "現在非対応です。"})
             
     return Response(serializer.data)
+
+
+
+@api_view(['GET'])
+def get_today_programs(request):
+    # 今日の番組をAPIで返す
+    location = request.GET.get("location",None)
+    channel = request.GET.get("channel",None)
+
+    today = datetime.now()
+    formatted_date = today.strftime('%Y-%m-%d')
+    # channel = 10
+    # location = "大阪"
+        
+    broadcaster = Broadcaster()
+    print("1")
+    programs = broadcaster.get_today_programs(channel,location,formatted_date)
+    for i in programs:
+        print(i)
+
+    if programs:
+        serializer = ProgramSerializer(programs,many=True)
+    else:
+        return Response({"message": "現在非対応です。"})
+            
+    return Response(serializer.data)
+
+
 
 
 def get_tv():

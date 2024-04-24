@@ -14,7 +14,7 @@ import unicodedata
 
 import pytz
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta,time
 
 from django.conf import settings
 import requests
@@ -44,8 +44,28 @@ class Broadcaster():
 
         
 
-    
+    def get_today_programs(self,channel,location,date_input):
+        print("2")
+        location = Location.objects.get(name=location) 
+        broadcast = Broadcast.objects.get(channel=channel, location=location)
+      
+        
+        date = datetime.strptime(date_input, '%Y-%m-%d').date()
+
+        start_of_day = timezone.make_aware(datetime.combine(date, time.min))
+        end_of_day = timezone.make_aware(datetime.combine(date, time.max))
+        print(start_of_day)
+        print(end_of_day)
+        programs_on_date = Program.objects.filter(
+            start_time__gte=start_of_day,
+            end_time__lte=end_of_day,
+            tv_station=broadcast.tv_station
+        ).order_by('start_time')
+        print("今日の番組",programs_on_date)
+
+        return programs_on_date
        
+    
     def get_now_program(self,channel,location):
         # 現在放送中の番組を取得する
         location = Location.objects.get(name=location) 

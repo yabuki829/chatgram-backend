@@ -44,7 +44,6 @@ class Room(models.Model):
 class Program(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     title = models.CharField(default="No Title", max_length=255)
-    detail = models.TextField()
     tv_station = models.ForeignKey(TVStation, on_delete=models.CASCADE, related_name='programs')
     start_time = models.DateTimeField(default=timezone.now)
     end_time = models.DateTimeField(default=timezone.now)
