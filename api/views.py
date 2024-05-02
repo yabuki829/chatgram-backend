@@ -5,7 +5,6 @@ from .models import Program,Location,TVStation,Broadcast
 from .serializers import ProgramSerializer
 from django.utils import timezone
 
-from django.utils import timezone
 from datetime import time,datetime,timedelta
 
 from utils.broadcaster import Broadcaster

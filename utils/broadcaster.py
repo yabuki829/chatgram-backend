@@ -42,7 +42,10 @@ class Broadcaster():
         self.options.add_argument('--disable-dev-shm-usage')
         self.options.add_argument('--remote-debugging-port=9222')
 
-        
+    def delete_past_program():
+        # 前日までの番組を削除する
+        Program.objects.filter()
+        pass
 
     def get_today_programs(self,channel,location,date_input):
         print("2")
@@ -54,6 +57,7 @@ class Broadcaster():
 
         start_of_day = timezone.make_aware(datetime.combine(date, time.min))
         end_of_day = timezone.make_aware(datetime.combine(date, time.max))
+        
         print(start_of_day)
         print(end_of_day)
         programs_on_date = Program.objects.filter(
